@@ -1,0 +1,32 @@
+name: Keep it green 🌱
+
+on:
+  schedule:
+    # Empat waktu acak setiap hari (jam UTC)
+    - cron: '13 2 * * *' # 09:13 WIB
+    - cron: '42 5 * * *' # 12:42 WIB
+    - cron: '17 9 * * *' # 16:17 WIB
+    - cron: '33 12 * * *' # 19:33 WIB
+  workflow_dispatch:
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install deps
+        run: npm install
+
+      - name: Generate commit
+        run: |
+          git config user.name "fjrfthrrhmn"
+          git config user.email "jeynihgenk25@gmail.com"
+          node index.js

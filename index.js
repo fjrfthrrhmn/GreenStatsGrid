@@ -1,12 +1,17 @@
-import jsonfile from 'jsonfile';
+import fs from 'fs';
 import moment from 'moment';
 import simpleGit from 'simple-git';
 
-const path = './data.json';
-const date = moment().subtract(5, 'days').format();
+const git = simpleGit();
+const date = moment().toISOString();
+const id = Math.floor(Math.random() * 9999);
 
-const data = { date };
+async function run() {
+  fs.writeFileSync('data.json', JSON.stringify({ date, id }, null, 2));
 
-jsonfile.writeFile(path, data, () => {
-  simpleGit().add([path]).commit(date, `Keep it green ${date}`).push();
-})
+  await git.add('data.json');
+  await git.commit(`🌱 random commit ${id} - ${date}`);
+  await git.push();
+}
+
+run();
