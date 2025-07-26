@@ -1,33 +1,32 @@
-# .github/workflows/auto-commit.yml
 name: Auto Commit Daily
 
-# Schedule: Random times with natural patterns
 on:
   schedule:
-    # Morning: 9-11 AM UTC (16-18 WIB) - 60% days
-    - cron: '15 9 * * 1,2,4,5' # Mon,Tue,Thu,Fri 9:15 AM
-    - cron: '45 10 * * 2,3,5' # Tue,Wed,Fri 10:45 AM
+    # Morning (60% days)
+    - cron: '15 9 * * 1,2,4,5'   # Mon, Tue, Thu, Fri
+    - cron: '45 10 * * 2,3,5'    # Tue, Wed, Fri
 
-    # Afternoon: 1-3 PM UTC (20-22 WIB) - 40% days
-    - cron: '30 13 * * 1,3,4' # Mon,Wed,Thu 1:30 PM
-    - cron: '15 14 * * 2,5' # Tue,Fri 2:15 PM
+    # Afternoon (40% days)
+    - cron: '30 13 * * 1,3,4'    # Mon, Wed, Thu
+    - cron: '15 14 * * 2,5'      # Tue, Fri
 
-    # Evening: 5-7 PM UTC (00-02 WIB+1) - 30% days
-    - cron: '45 17 * * 1,4' # Mon,Thu 5:45 PM
-    - cron: '20 18 * * 3' # Wed 6:20 PM
+    # Evening (30% days)
+    - cron: '45 17 * * 1,4'      # Mon, Thu
+    - cron: '20 18 * * 3'        # Wed
 
-  # Manual trigger untuk testing
   workflow_dispatch:
 
 jobs:
   auto-commit:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -36,79 +35,70 @@ jobs:
 
       - name: Configure Git
         run: |
-          git config --local user.email "action@github.com"
           git config --local user.name "GitHub Actions"
+          git config --local user.email "action@github.com"
 
       - name: Check if should commit (probability)
         id: should_commit
         run: |
-          # Random probability (30-70% chance)
+          set -e
           RANDOM_NUM=$((RANDOM % 100))
           THRESHOLD=60
 
-          # Lower chance on Friday (40%)
-          if [ $(date +%u) -eq 5 ]; then
+          if [ "$(date +%u)" -eq 5 ]; then
             THRESHOLD=40
-          fi
-
-          # Very low chance on Monday (30%) 
-          if [ $(date +%u) -eq 1 ]; then
+          elif [ "$(date +%u)" -eq 1 ]; then
             THRESHOLD=30
           fi
 
           echo "Random: $RANDOM_NUM, Threshold: $THRESHOLD"
 
-          if [ $RANDOM_NUM -lt $THRESHOLD ]; then
+          if [ "$RANDOM_NUM" -lt "$THRESHOLD" ]; then
             echo "should_commit=true" >> $GITHUB_OUTPUT
             echo "✅ Will commit today"
           else
-            echo "should_commit=false" >> $GITHUB_OUTPUT  
+            echo "should_commit=false" >> $GITHUB_OUTPUT
             echo "⏭️ Skipping today"
           fi
 
       - name: Generate meaningful changes
         if: steps.should_commit.outputs.should_commit == 'true'
         run: |
-          # Create/update activity log
+          set -e
           DATE=$(date '+%Y-%m-%d')
           TIME=$(date '+%H:%M:%S')
           WEEKDAY=$(date '+%A')
 
-          # Create logs directory if not exists
           mkdir -p logs
 
-          # Update daily activity log
           echo "## Activity Log - $DATE ($WEEKDAY)" >> logs/daily-activity.md
           echo "- $TIME: Automated maintenance and updates" >> logs/daily-activity.md
           echo "- Code review and documentation updates" >> logs/daily-activity.md
           echo "- Performance monitoring and optimization" >> logs/daily-activity.md
           echo "" >> logs/daily-activity.md
 
-          # Update README with last activity
           if [ ! -f README.md ]; then
-            cat > README.md << 'EOF'
-            This repository demonstrates automated commit patterns using GitHub Actions.
+cat > README.md <<EOF
+This repository demonstrates automated commit patterns using GitHub Actions.
 
-          - Natural commit patterns
-          - Automated documentation updates  
-          - Daily activity logging
-          - Safe probability-based commits
+- Natural commit patterns
+- Automated documentation updates  
+- Daily activity logging
+- Safe probability-based commits
 
-          ## Last Activity
-          EOF
+## Last Activity
+EOF
           fi
 
-          # Update last activity in README
           sed -i '/## Last Activity/,$d' README.md
           echo "## Last Activity" >> README.md
           echo "- **Date**: $DATE" >> README.md
           echo "- **Time**: $TIME UTC" >> README.md
           echo "- **Status**: Active development" >> README.md
 
-          # Random small updates
           UPDATES=(
             "docs: update documentation"
-            "chore: maintenance and cleanup"  
+            "chore: maintenance and cleanup"
             "feat: improve functionality"
             "refactor: code optimization"
             "style: formatting improvements"
@@ -117,21 +107,23 @@ jobs:
           )
 
           RANDOM_INDEX=$((RANDOM % ${#UPDATES[@]}))
-          COMMIT_MSG="${UPDATES[$RANDOM_INDEX]} - $DATE"
-          echo "COMMIT_MESSAGE=$COMMIT_MSG" >> $GITHUB_ENV
+          HASH=$(git rev-parse --short HEAD || echo $RANDOM)
+          COMMIT_MESSAGE="${UPDATES[$RANDOM_INDEX]} - $DATE [$HASH]"
+          echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
 
       - name: Commit and push changes
         if: steps.should_commit.outputs.should_commit == 'true'
         run: |
+          set -e
           git add .
 
-          # Check if there are changes to commit
           if git diff --staged --quiet; then
             echo "No changes to commit"
             exit 0
           fi
 
           git commit -m "$COMMIT_MESSAGE"
+          git pull --rebase origin main
           git push
 
           echo "✅ Successfully committed: $COMMIT_MESSAGE"
