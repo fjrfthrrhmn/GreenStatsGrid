@@ -1,0 +1,28 @@
+# .github/workflows/test-simple.yml
+# Simple test workflow untuk debug permission
+
+name: Simple Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Test commit
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        echo "Test: $(date)" >> test.txt
+        git add test.txt
+        git commit -m "test: simple commit"
+        git push origin main
