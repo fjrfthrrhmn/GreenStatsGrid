@@ -9,7 +9,37 @@ on:
     - cron: '33 12 * * *' # 19:33 WIB
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Auto commit
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          node index.js
+          git add data.json
+          git commit -m "🌱 random commit" || echo "Nothing has changed"
+          git pull --rebase origin main
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+
   commit:
     runs-on: ubuntu-latest
 
