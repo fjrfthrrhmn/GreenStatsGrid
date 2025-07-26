@@ -1,69 +1,137 @@
-# 🤖 Auto Commit Repository
+# 🚀 Setup Guide - GitHub Auto Commit
 
-Repository ini menggunakan GitHub Actions untuk membuat pola commit yang natural dan aman.
+## Step 1: Create Repository
 
-## ✨ Features
+```bash
+# Option A: Create new repo
+gh repo create auto-commit-repo --public
+cd auto-commit-repo
 
-- 🕐 Natural timing patterns (tidak setiap hari)
-- 🎲 Probability-based commits (30-70% chance)
-- 📝 Meaningful file changes (bukan commit kosong)
-- 🛡️ Safety measures untuk menghindari detection
-- 📊 Activity logging dan dokumentasi
-
-## 🔧 How It Works
-
-### Schedule Pattern:
-- **Morning**: 9-11 AM UTC (16-18 WIB) - 60% hari kerja
-- **Afternoon**: 1-3 PM UTC (20-22 WIB) - 40% hari kerja  
-- **Evening**: 5-7 PM UTC (00-02 WIB+1) - 30% hari kerja
-
-### Safety Features:
-- ✅ Skip random days (probability-based)
-- ✅ Lower activity on Monday & Friday
-- ✅ No weekend commits
-- ✅ Real file changes (logs, docs)
-- ✅ Varied commit messages
-
-## 📁 File Structure
-
-```
-├── .github/
-│   └── workflows/
-│       └── auto-commit.yml    # GitHub Actions workflow
-├── logs/
-│   └── daily-activity.md      # Daily activity log
-├── README.md                  # This file
-└── setup-guide.md            # Setup instructions
+# Option B: Use existing repo
+cd your-existing-repo
 ```
 
-## 🚀 Setup Instructions
+## Step 2: Add Workflow File
 
-1. **Fork/Create** repository ini
-2. **Enable Actions** di Settings → Actions → General
-3. **Workflow akan jalan otomatis** sesuai schedule
-4. **Monitor** di tab Actions untuk melihat hasil
+Buat structure folder:
+```bash
+mkdir -p .github/workflows
+mkdir -p logs
+```
 
-## 📊 Monitoring
+Copy workflow file ke `.github/workflows/auto-commit.yml`
 
-- Check tab **Actions** untuk workflow runs
-- Monitor **commit history** di graph
-- Review **logs/** folder untuk activity
+## Step 3: Initial Setup
 
-## ⚠️ Important Notes
+```bash
+# Add files
+git add .
+git commit -m "feat: setup auto commit workflow"
+git push origin main
+```
 
-- Repository ini untuk **learning purposes**
-- Gunakan dengan **bijak dan etis**
-- Jangan abuse GitHub's contribution system
-- Pastikan ada **real work** juga di repository lain
+## Step 4: Enable GitHub Actions
 
-## 🔍 Manual Testing
+1. Go to your repo Settings
+2. Click **Actions** → **General**  
+3. Set **Actions permissions** to "Allow all actions"
+4. Save changes
 
-Untuk test manual workflow:
+## Step 5: Verify Setup
+
 1. Go to **Actions** tab
-2. Click **Auto Commit Daily**
-3. Click **Run workflow**
+2. Should see "Auto Commit Daily" workflow
+3. Check **workflow runs** (akan kosong dulu)
 
-## Last Activity
-- **Date**: 2025-01-26
-- **Time**: Setup completed
-- **Status**: Ready for automation
+## Step 6: Test Manual Run
+
+1. Go to Actions → Auto Commit Daily
+2. Click **Run workflow** 
+3. Click **Run workflow** button
+4. Wait dan check hasilnya
+
+## 📊 Schedule Overview
+
+| Time (UTC) | Time (WIB) | Days | Probability |
+|------------|------------|------|-------------|
+| 2:15 AM    | 9:15 AM    | Mon,Tue,Thu,Fri | 60% |
+| 3:45 AM    | 10:45 AM   | Tue,Wed,Fri | 60% |
+| 6:30 AM    | 1:30 PM    | Mon,Wed,Thu | 40% |
+| 7:15 AM    | 2:15 PM    | Tue,Fri | 40% |
+| 10:45 AM   | 5:45 PM    | Mon,Thu | 30% |
+| 11:20 AM   | 6:20 PM    | Wed | 30% |
+
+## 🛡️ Safety Tips
+
+### Do's ✅
+- Monitor commit patterns regularly
+- Add real work to other repositories  
+- Keep commit messages meaningful
+- Use probability-based scheduling
+
+### Don'ts ❌  
+- Don't run on every single day
+- Don't use identical commit times
+- Don't commit only empty changes
+- Don't abuse the system
+
+## 🔧 Customization
+
+### Change Probability:
+Edit `THRESHOLD` values in workflow:
+```yaml
+THRESHOLD=60  # 60% chance
+```
+
+### Change Schedule:
+Edit cron expressions (remember UTC = WIB - 7):
+```yaml
+- cron: '15 2 * * 1,2,4,5'  # 9:15 AM WIB
+```
+
+### Change Commit Messages:
+Edit `UPDATES` array in workflow:
+```bash
+UPDATES=(
+  "docs: your custom message"
+  "feat: another message"
+)
+```
+
+## 📱 Monitoring Commands
+
+```bash
+# Check recent commits
+git log --oneline -10
+
+# Check workflow status (requires gh CLI)
+gh run list
+
+# View specific run
+gh run view [RUN_ID]
+```
+
+## ❗ Troubleshooting
+
+**Issue**: Workflow not running
+- Check if Actions enabled in Settings
+- Verify cron syntax
+- Check repository permissions
+
+**Issue**: No commits made  
+- Normal behavior (probability-based)
+- Check workflow logs in Actions tab
+- Verify file changes are being made
+
+**Issue**: Authentication errors
+- GitHub Actions uses automatic GITHUB_TOKEN
+- No additional setup needed for public repos
+
+## 🎯 Expected Results
+
+- **3-8 commits per week** (random)
+- **Natural patterns** (not every day)
+- **Meaningful changes** (logs, docs updates)
+- **Varied timing** (different hours)
+
+Dengan setup ini, lu bakal punya repository yang commit otomatis dengan pattern natural dan aman! 🎉

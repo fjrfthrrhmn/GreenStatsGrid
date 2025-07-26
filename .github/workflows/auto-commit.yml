@@ -4,17 +4,17 @@ name: Auto Commit Daily
 # Schedule: Random times with natural patterns
 on:
   schedule:
-    # Morning: 9-11 AM UTC (16-18 WIB) - 60% days
-    - cron: '15 9 * * 1,2,4,5'    # Mon,Tue,Thu,Fri 9:15 AM
-    - cron: '45 10 * * 2,3,5'     # Tue,Wed,Fri 10:45 AM
+    # Morning: 9-11 AM WIB (2-4 AM UTC) - 60% days
+    - cron: '15 2 * * 1,2,4,5'     # Mon,Tue,Thu,Fri 9:15 AM WIB
+    - cron: '45 3 * * 2,3,5'       # Tue,Wed,Fri 10:45 AM WIB
     
-    # Afternoon: 1-3 PM UTC (20-22 WIB) - 40% days  
-    - cron: '30 13 * * 1,3,4'     # Mon,Wed,Thu 1:30 PM
-    - cron: '15 14 * * 2,5'       # Tue,Fri 2:15 PM
+    # Afternoon: 1-3 PM WIB (6-8 AM UTC) - 40% days  
+    - cron: '30 6 * * 1,3,4'       # Mon,Wed,Thu 1:30 PM WIB
+    - cron: '15 7 * * 2,5'         # Tue,Fri 2:15 PM WIB
     
-    # Evening: 5-7 PM UTC (00-02 WIB+1) - 30% days
-    - cron: '45 17 * * 1,4'       # Mon,Thu 5:45 PM
-    - cron: '20 18 * * 3'         # Wed 6:20 PM
+    # Evening: 5-7 PM WIB (10-12 PM UTC) - 30% days
+    - cron: '45 10 * * 1,4'        # Mon,Thu 5:45 PM WIB
+    - cron: '20 11 * * 3'          # Wed 6:20 PM WIB
     
   # Manual trigger untuk testing
   workflow_dispatch:
@@ -73,6 +73,9 @@ jobs:
     - name: Generate meaningful changes
       if: steps.should_commit.outputs.should_commit == 'true'
       run: |
+        # Set timezone to WIB (UTC+7)
+        export TZ='Asia/Jakarta'
+        
         # Create/update activity log
         DATE=$(date '+%Y-%m-%d')
         TIME=$(date '+%H:%M:%S')
@@ -82,8 +85,8 @@ jobs:
         mkdir -p logs
         
         # Update daily activity log
-        echo "## Activity Log - $DATE ($WEEKDAY)" >> logs/daily-activity.md
-        echo "- $TIME: Automated maintenance and updates" >> logs/daily-activity.md
+        echo "## Activity Log - $DATE ($WEEKDAY) WIB" >> logs/daily-activity.md
+        echo "- $TIME WIB: Automated maintenance and updates" >> logs/daily-activity.md
         echo "- Code review and documentation updates" >> logs/daily-activity.md
         echo "- Performance monitoring and optimization" >> logs/daily-activity.md
         echo "" >> logs/daily-activity.md
@@ -109,7 +112,7 @@ jobs:
         sed -i '/## Last Activity/,$d' README.md
         echo "## Last Activity" >> README.md
         echo "- **Date**: $DATE" >> README.md
-        echo "- **Time**: $TIME UTC" >> README.md
+        echo "- **Time**: $TIME WIB" >> README.md
         echo "- **Status**: Active development" >> README.md
         
         # Random small updates
@@ -156,10 +159,13 @@ jobs:
     - name: Summary
       if: always()
       run: |
+        # Set timezone to WIB
+        export TZ='Asia/Jakarta'
+        
         echo "🤖 Auto Commit Summary"
         echo "====================="
         echo "Date: $(date '+%Y-%m-%d %A')"
-        echo "Time: $(date '+%H:%M:%S UTC')"
+        echo "Time: $(date '+%H:%M:%S WIB')"
         echo "Should commit: ${{ steps.should_commit.outputs.should_commit }}"
         if [ "${{ steps.should_commit.outputs.should_commit }}" == "true" ]; then
           echo "Action: Commit made ✅"
