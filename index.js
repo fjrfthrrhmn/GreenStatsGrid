@@ -3,7 +3,7 @@ import moment from 'moment';
 import simpleGit from 'simple-git';
 
 const git = simpleGit();
-const date = moment().toISOString();
+const date = moment().format('MMMM Do YYYY, h:mm:ss a');
 
 async function run() {
   let data = [];
