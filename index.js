@@ -4,13 +4,31 @@ import simpleGit from 'simple-git';
 
 const git = simpleGit();
 const date = moment().toISOString();
-const id = Math.floor(Math.random() * 9999);
 
 async function run() {
-  fs.writeFileSync('data.json', JSON.stringify({ date, id }, null, 2));
+  let data = [];
 
+  if (fs.existsSync('data.json')) {
+    const raw = fs.readFileSync('data.json', 'utf-8');
+    try {
+      const parsed = JSON.parse(raw);
+      data = Array.isArray(parsed) ? parsed : [parsed];
+    } catch (e) {
+      console.error('Failed to parse data.json:', e);
+    }
+  }
+
+  data.push({ date });
+  fs.writeFileSync('data.json', JSON.stringify(data, null, 2));
+
+  // Commit dulu
   await git.add('data.json');
-  await git.commit(`🌱 random commit ${id} - ${date}`);
+  await git.commit(`🌱 random commit ${date}`);
+
+  // Baru pull dengan rebase
+  await git.pull('origin', 'main', { '--rebase': 'true' });
+
+  // Push hasil akhir
   await git.push();
 }
 
